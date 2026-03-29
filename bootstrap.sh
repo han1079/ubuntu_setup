@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "=== APT dependencies ==="
 sudo apt-get update -qq
-DEPS=(git curl unzip ripgrep xclip npm build-essential alacritty tmux)
+DEPS=(git curl unzip ripgrep xclip npm build-essential alacritty tmux fontconfig)
 for dep in "${DEPS[@]}"; do
   if ! command -v "$dep" &>/dev/null && ! dpkg -s "$dep" &>/dev/null 2>&1; then
     echo "Installing $dep..."
@@ -60,6 +60,7 @@ echo "=== Dotfiles ==="
 cp "$SCRIPT_DIR/dotfiles/_bash_aliases" "$HOME/.bash_aliases"
 cp "$SCRIPT_DIR/dotfiles/_profile" "$HOME/.profile"
 cp "$SCRIPT_DIR/dotfiles/_tmux.conf" "$HOME/.tmux.conf"
+mkdir -p "$HOME/.local/bin"
 cp "$SCRIPT_DIR/dotfiles/git-superstate" "$HOME/.local/bin/git-superstate"
 chmod +x "$HOME/.local/bin/git-superstate"
 echo "Dotfiles copied"
