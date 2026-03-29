@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+# --- git-superstate: holistic Git workspace and remote overview ---
+
+# === COLORS ===
+RESET="\033[0m"; BOLD="\033[1m"
+BLUE="\033[1;34m"; GREEN="\033[1;32m"
+YELLOW="\033[1;33m"; MAGENTA="\033[1;35m"
+CYAN="\033[1;36m"
+
+# === COLORIZED OUTPUT ===
+format() { local c=$1; shift; local txt="$*"; printf "%b%s%b\n" "${!c}" "$txt" "$RESET"; }
+
+# === ARGUMENT PARSING ===
+VERBOSE=false
+SHOW_LOCAL=false
+SHOW_REMOTE=false
+SHOW_BETWEEN=false
+SHOW_STAGED=true
+SHOW_UNSTAGED=true
+SHOW_UNTRACKED=true
+SHOW_IGNORED=true
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -v|--verbose) VERBOSE=true ;;
+        --local) SHOW_LOCAL=true ;;
+        --remote) SHOW_REMOTE=true ;;
+        --between-commits) SHOW_BETWEEN=true ;;
+        --staged) SHOW_STAGED=true ;;
+        --unstaged) SHOW_UNSTAGED=true ;;
+        --untracked) SHOW_UNTRACKED=true ;;
+        --ignored) SHOW_IGNORED=true ;;
+        -h|--help)
+            echo "Usage: git superstate [options]"
+            echo "  -v, --verbose           Print commands before execution"
+            echo "  --local                 Show diffs between working tree and HEAD"
+            echo "  --remote                Show diffs between working tree and remote branch"
+            echo "  --between-commits       Show diffs between local commit and remote branch"
+            echo "  --staged                Show staged files"
+            echo "  --unstaged              Show modified/deleted but unstaged files"
+            echo "  --untracked             Show untracked files"
+            echo "  --ignored               Show ignored files"
+            exit 0 ;;
+    esac
+    shift
+done
+
+# Default: show everything
+if ! $SHOW_LOCAL && ! $SHOW_REMOTE && ! $SHOW_BETWEEN; then
+    SHOW_LOCAL=true
+    SHOW_REMOTE=true
+    SHOW_BETWEEN=true
+fi
+
+# === VERBOSE EXECUTION WRAPPER ===
+run() {
+    if $VERBOSE; then printf "%b[git %s]%b\n" "${BOLD}${GREEN}" "$*" "$RESET"; fi
+    git "$@"
+}
+
+# === VERIFY WE'RE IN A GIT REPO ===
+run rev-parse --is-inside-work-tree &>/dev/null || {
+    format YELLOW "Not inside a Git repository."
+    exit 1
+}
+
+# === BRANCH INFO ===
+format BLUE "=== BRANCH INFO ==="
+BRANCH=$(git branch --show-current 2>/dev/null)
+HEAD_HASH=$(git rev-parse --short HEAD 2>/dev/null)
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+
+printf "Branch: %s\n" "${BRANCH:-"(detached HEAD)"}"
+printf "HEAD:   %s\n" "${HEAD_HASH:-"(none)"}"
+if [[ -n "$UPSTREAM" ]]; then
+    printf "Tracking: %s\n" "$UPSTREAM"
+else
+    printf "No upstream branch configured.\n"
+fi
+printf "\n"
+
+# === STAGED FILES ===
+if $SHOW_STAGED; then
+    format GREEN "=== STAGED CHANGES (ready to commit) ==="
+    run diff --cached --name-status || printf "none\n"
+    printf "\n"
+fi
+
+# === UNSTAGED FILES ===
+if $SHOW_UNSTAGED; then
+    format YELLOW "=== UNSTAGED CHANGES (modified/deleted) ==="
+    run diff --name-status || printf "none\n"
+    printf "\n"
+fi
+
+# === UNTRACKED FILES ===
+if $SHOW_UNTRACKED; then
+    format CYAN "=== UNTRACKED FILES (not added yet) ==="
+    run ls-files --others --exclude-standard
+    printf "\n"
+fi
+
+# === IGNORED FILES ===
+if $SHOW_IGNORED; then
+    format MAGENTA "=== IGNORED FILES (from .gitignore) ==="
+    git status --ignored --short | grep '^!!' | sed 's/^!! //' || printf "none\n"
+    printf "\n"
+fi
+
+# === LOCAL CHANGES (working tree vs HEAD) ===
+if $SHOW_LOCAL; then
+    format YELLOW "=== LOCAL DIFF (working tree vs HEAD) ==="
+    run diff HEAD --name-status || printf "none\n"
+    printf "\n"
+fi
+
+# === REMOTE DIFF (working tree vs remote branch) ===
+if $SHOW_REMOTE; then
+    format CYAN "=== REMOTE DIFF (working tree vs remote branch) ==="
+    if git rev-parse --abbrev-ref --symbolic-full-name @{u} &>/dev/null; then
+        run diff --name-status @{u} || printf "none\n"
+    else
+        printf "No upstream branch configured.\n"
+    fi
+    printf "\n"
+fi
+
+# === BETWEEN COMMITS (HEAD vs remote branch) ===
+if $SHOW_BETWEEN; then
+    format MAGENTA "=== BETWEEN COMMITS (HEAD vs remote branch) ==="
+    if git rev-parse --abbrev-ref --symbolic-full-name @{u} &>/dev/null; then
+        run diff --name-status HEAD...@{u} || printf "none\n"
+        printf "\n"
+        format BLUE "Ahead/Behind counts:"
+        git rev-list --left-right --count HEAD...@{u} | awk '{print "Ahead:", $1, "Behind:", $2}'
+    else
+        printf "No upstream branch configured.\n"
+    fi
+    printf "\n"
+fi
+
+# === SUMMARY ===
+format BLUE "=== SUMMARY ==="
+run status -sb

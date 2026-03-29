@@ -1,0 +1,32 @@
+export ARDUINO_HARDWARE_DIR="$HOME/.arduino15/packages/arduino/hardware"
+export ARDUINO_COMPILER_DIR="$HOME/.arduino15/packages/arduino/tools"
+
+alias nvim_init="nvim ~/.config/nvim/init.lua"
+alias open_sandbox='cd ~/devel/sandbox'
+
+alias copy_pwd=pwd | xclip -selection clipboard
+alias reload_user_environment="systemctl --user daemon-reexec && systemctl --user import-environment"
+copy_pwd() {
+	pwd | xclip -selection clipboard && echo "PWD Copied To Clipboard"
+}
+
+open_arduino_avr_core() {
+	cd "${ARDUINO_HARDWARE_DIR}/avr/"*/cores/arduino
+}
+
+open_arduino_rp2040_core() {
+	cd "${ARDUINO_HARDWARE_DIR}/mbed_rp2040/"*/cores/arduino
+}
+
+open_arduino_pico_sdk_core() {
+	cd "~/.arduino15/packages/rp2040/hardware/rp2040/4.6.0/cores/rp2040"
+}
+
+open_arduino_avr_gcc() {
+	cd "${ARDUINO_COMPILER_DIR}/avr-gcc/"*/bin
+}
+
+open_arduino_arm_gcc() {
+	cd "${ARDUINO_COMPILER_DIR}/arm-none-eabi-gcc/"*/bin
+}
+
