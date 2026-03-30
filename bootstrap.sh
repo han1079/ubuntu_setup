@@ -56,6 +56,16 @@ else
 fi
 
 echo ""
+echo "===tpm (tmux plugin manager) ==="
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    mkdir -p "$HOME/.tmux/plugins"
+    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+    echo "tpm installed"
+else
+    echo "tpm: ok"
+fi
+
+echo ""
 echo "=== Dotfiles ==="
 cp "$SCRIPT_DIR/dotfiles/_bash_aliases" "$HOME/.bash_aliases"
 cp "$SCRIPT_DIR/dotfiles/_profile" "$HOME/.profile"
