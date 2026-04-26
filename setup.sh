@@ -13,6 +13,11 @@ if ! command -v cargo &>/dev/null; then
   fi
 fi
 
+if ! grep -q '\.cargo/env' "$HOME/.bashrc" 2>/dev/null; then
+  echo "Adding cargo/env to .bashrc"
+  echo '. "$HOME/.cargo/env"' >> "$HOME/.bashrc"
+fi
+
 echo "=== Bob ==="
 if ! command -v bob &>/dev/null; then
   echo "Installing bob..."
@@ -28,6 +33,12 @@ fi
 
 echo ""
 echo "=== Neovim ==="
+# Remove system nvim if it's not the bob-managed version
+if command -v nvim &>/dev/null && [[ "$(command -v nvim)" != *"bob"* ]]; then
+  echo "Removing conflicting system nvim..."
+  sudo apt remove -y neovim 2>/dev/null || true
+fi
+
 if ! command -v nvim &>/dev/null; then
   echo "Installing nvim stable via bob..."
   bob install stable
@@ -44,7 +55,7 @@ mkdir -p "$NVIM_CONF"
 echo "Copying lua config files..."
 cp "$SCRIPT_DIR/nvim_lua_files/init.lua" "$NVIM_CONF/init.lua"
 cp "$SCRIPT_DIR/nvim_lua_files/lazy-lock.json" "$NVIM_CONF/lazy-lock.json"
-cp -r "$SCRIPT_DIR/nvim_lua_files/lua" "$NVIM_CONF/lua"
+cp -r "$SCRIPT_DIR/nvim_lua_files/lua" "$NVIM_CONF"
 
 echo ""
 echo "=== Lazy restore ==="
