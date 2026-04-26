@@ -10,14 +10,13 @@ return{
 			"c",
 			"cpp",
 			"lua",
-			"latex",
 			"javascript",
 			"bash",
             "html",
 		}
 
 		treesitter_config_object.setup({
-			ensure_installed = language_supported,
+			ensure_installed = languages_supported,
 			highlight = {enable = true},
 			indent = {enable = true},
 		})

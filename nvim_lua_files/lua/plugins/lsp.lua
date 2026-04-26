@@ -27,8 +27,11 @@ return{
         local mason_lspconfig = require("mason-lspconfig")
         local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-        local servers = { "lua_ls", "pyright", "clangd", "texlab" }
-
+        local servers = { "lua_ls", "clangd", "texlab" }
+        vim.lsp.config.clangd = {
+            capabilities = capabilities,
+            cmd = {"clangd", "--query-driver=**", "--background-index"},
+        }
         mason_lspconfig.setup({
             ensure_installed = servers,
             automatic_installation = true,
@@ -65,5 +68,15 @@ return{
                 end,
             }
         })
+
+        -- Python: installed via pip/curl in setup.sh, not managed by Mason
+        vim.lsp.config.pylsp = { capabilities = capabilities }
+        vim.lsp.enable("pylsp")
+
+        vim.lsp.config.ruff = {
+            capabilities = capabilities,
+            cmd = { "ruff", "server" },
+        }
+        vim.lsp.enable("ruff")
     end
 }
