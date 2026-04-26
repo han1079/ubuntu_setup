@@ -49,8 +49,6 @@ map("n", "<leader>th", ":tabprevious<CR>", opts)
 -- Making this closer to Altium highlight clear
 map("n", "<leader>C", ":nohlsearch<CR>", opts)
 
--- Quick terminal (split)
-map("n", "<leader>tt", ":split | terminal<CR>", opts)
 map("t", "<Esc>", "<C-\\><C-n>", opts)
 
 -- Clipboard (Unix friendly)
