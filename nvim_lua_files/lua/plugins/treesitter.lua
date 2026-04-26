@@ -10,7 +10,6 @@ return{
 			"c",
 			"cpp",
 			"lua",
-			"latex",
 			"javascript",
 			"bash",
             "html",

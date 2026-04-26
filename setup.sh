@@ -58,6 +58,40 @@ cp "$SCRIPT_DIR/nvim_lua_files/lazy-lock.json" "$NVIM_CONF/lazy-lock.json"
 cp -r "$SCRIPT_DIR/nvim_lua_files/lua" "$NVIM_CONF"
 
 echo ""
+echo "=== pylsp ==="
+if ! command -v pylsp &>/dev/null; then
+  echo "Installing pylsp via pip..."
+  if python3 -m pip install --break-system-packages python-lsp-server; then
+    echo "pylsp: installed"
+  else
+    echo "WARNING: pylsp install failed."
+    echo "  Option 1: python3 -m pip install --break-system-packages python-lsp-server"
+    echo "  Option 2: download wheels from pypi.org/project/python-lsp-server/#files"
+    echo "            then: python3 -m pip install --break-system-packages --no-index --find-links=./wheels python-lsp-server"
+  fi
+else
+  echo "pylsp: ok"
+fi
+
+echo ""
+echo "=== ruff ==="
+if ! command -v ruff &>/dev/null; then
+  echo "Installing ruff..."
+  RUFF_URL="https://github.com/astral-sh/ruff/releases/latest/download/ruff-x86_64-unknown-linux-gnu.tar.gz"
+  if curl -fsSL "$RUFF_URL" | tar -xz --strip-components=1 -C "$HOME/.local/bin" 2>/dev/null; then
+    echo "ruff: installed"
+  else
+    echo "WARNING: ruff install failed."
+    echo "  Option 1: curl -fsSL <url> | tar -xz -C ~/.local/bin ruff"
+    echo "  Option 2: download ruff-x86_64-unknown-linux-gnu.tar.gz from"
+    echo "            github.com/astral-sh/ruff/releases"
+    echo "            then: tar -xz -C ~/.local/bin ruff -f ruff-x86_64-unknown-linux-gnu.tar.gz"
+  fi
+else
+  echo "ruff: ok"
+fi
+
+echo ""
 echo "=== Lazy restore ==="
 echo "Running headless :Lazy restore to install pinned plugin versions..."
 nvim --headless "+Lazy restore" +qa
