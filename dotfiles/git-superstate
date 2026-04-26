@@ -12,9 +12,9 @@ format() { local c=$1; shift; local txt="$*"; printf "%b%s%b\n" "${!c}" "$txt" "
 
 # === ARGUMENT PARSING ===
 VERBOSE=false
-SHOW_LOCAL=false
-SHOW_REMOTE=false
-SHOW_BETWEEN=false
+SHOW_LOCAL=true
+SHOW_REMOTE=true
+SHOW_BETWEEN=true
 SHOW_STAGED=true
 SHOW_UNSTAGED=true
 SHOW_UNTRACKED=true
@@ -23,34 +23,86 @@ SHOW_IGNORED=true
 while [[ $# -gt 0 ]]; do
     case $1 in
         -v|--verbose) VERBOSE=true ;;
-        --local) SHOW_LOCAL=true ;;
-        --remote) SHOW_REMOTE=true ;;
-        --between-commits) SHOW_BETWEEN=true ;;
-        --staged) SHOW_STAGED=true ;;
-        --unstaged) SHOW_UNSTAGED=true ;;
-        --untracked) SHOW_UNTRACKED=true ;;
-        --ignored) SHOW_IGNORED=true ;;
+        --no-local) SHOW_LOCAL=false ;;
+        --no-remote) SHOW_REMOTE=false ;;
+        --no-between-commits) SHOW_BETWEEN=false ;;
+        --no-staged) SHOW_STAGED=false ;;
+        --no-unstaged) SHOW_UNSTAGED=false ;;
+        --no-untracked) SHOW_UNTRACKED=false ;;
+        --no-ignored) SHOW_IGNORED=false ;;
         -h|--help)
+            echo "==========================================================="
+            echo "====================Superstate Usage======================="
+            echo "==========================================================="
             echo "Usage: git superstate [options]"
-            echo "  -v, --verbose           Print commands before execution"
-            echo "  --local                 Show diffs between working tree and HEAD"
-            echo "  --remote                Show diffs between working tree and remote branch"
-            echo "  --between-commits       Show diffs between local commit and remote branch"
-            echo "  --staged                Show staged files"
-            echo "  --unstaged              Show modified/deleted but unstaged files"
-            echo "  --untracked             Show untracked files"
-            echo "  --ignored               Show ignored files"
+            echo "  -v, --verbose             Print commands before execution"
+            echo "  --no-local                Hides diffs between working tree and HEAD"
+            echo "  --no-remote               Hides diffs between working tree and remote branch"
+            echo "  --no-between-commits      Hides diffs between local commit and remote branch"
+            echo "  --no-staged               Hides staged files"
+            echo "  --no-unstaged             Hides modified/deleted but unstaged files"
+            echo "  --no-untracked            Hides untracked files"
+            echo "  --no-ignored              Hides ignored files"
+            echo "==========================================================="
+            echo "====================Terminology============================"
+            echo "==========================================================="
+            echo "  Working Tree:   Literally the files you are working on after you Ctrl+S"
+            echo "  HEAD:           The 'most up-to-date' revision. This is the last 'git commit' you did."
+            echo "  Staged:         All files that you've 'git add'-ed. They are 'staged for commit'"
+            echo "  Remote Branch:  The branch on GitHub that the local branch pulls from."
+            echo "  Untracked:      Files that have been created, but have never been git added. (Random data files are most common)"
+            echo "  Ignored:        Files whose names match a pattern you specify in the .gitignore file at the project root."
+            echo "==========================================================="
+            echo "====================Git Commands==========================="
+            echo "==========================================================="
+            echo ""
+            echo "  -- Diff a file vs another branch --"
+            echo "  git diff <branch> -- <file>"
+            echo "    Shows difference between your working tree file and that file on <branch>"
+            echo ""
+            echo "  -- Diff a file vs a remote branch --"
+            echo "  git diff origin/<branch> -- <file>"
+            echo "    Same, but compares against the remote copy of <branch>"
+            echo ""
+            echo "  -- Squash commits --"
+            echo "  git rebase -i HEAD~N"
+            echo "    Opens editor for last N commits. Change 'pick' -> 's' (squash) on commits"
+            echo "    to fold into the one above. The topmost commit stays as 'pick'."
+            echo ""
+            echo "  -- Delete untracked files wholesale --"
+            echo "  git clean -n          (dry run: shows what would be deleted)"
+            echo "  git clean -fd         (deletes untracked files and directories)"
+            echo ""
+            echo "  -- Unstage changes / revert to last commit --"
+            echo "  git restore --staged <file>    Unstage a file (keeps working tree changes)"
+            echo "  git restore <file>             Discard working tree changes (reverts to HEAD)"
+            echo "  git restore --staged --worktree <file>  Both: fully revert to HEAD"
+            echo ""
+            echo "  -- Create a PR with gh --"
+            echo "  git push -u origin <branch>"
+            echo "  gh pr create --title \"Title\" --body \"Description\""
+            echo "    Add --draft for a draft PR. Omit --body to open an editor."
+            echo ""
+            echo "  -- restore vs reset vs clean --"
+            echo "  git restore <file>         Undo working tree changes on a tracked file"
+            echo "  git restore --staged <f>   Move file from staged back to unstaged"
+            echo "  git reset HEAD~1           Undo last commit, keep changes in working tree"
+            echo "  git reset --hard HEAD      Nuke ALL staged+unstaged changes (cannot undo)"
+            echo "  git clean -fd              Delete UNTRACKED files/dirs (cannot undo)"
+            echo "  Rule of thumb: restore = tracked-file surgery, reset = commit surgery,"
+            echo "                 clean = wipe untracked files"
+            echo ""
+            echo "  -- Push to a remote branch --"
+            echo "  git remote -v                         Check your configured remotes"
+            echo "  git ls-remote --heads origin <branch> Check if branch exists on remote"
+            echo "  git push -u origin <branch>           Push and set upstream tracking"
+            echo "    After -u is set once, plain 'git push' / 'git pull' work automatically."
+            echo "==========================================================="
             exit 0 ;;
+        *) echo "Unknown option: $1"; exit 1 ;;
     esac
     shift
 done
-
-# Default: show everything
-if ! $SHOW_LOCAL && ! $SHOW_REMOTE && ! $SHOW_BETWEEN; then
-    SHOW_LOCAL=true
-    SHOW_REMOTE=true
-    SHOW_BETWEEN=true
-fi
 
 # === VERBOSE EXECUTION WRAPPER ===
 run() {
