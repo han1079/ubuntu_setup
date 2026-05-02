@@ -9,4 +9,5 @@ return {
     require("plugins.cpp_formatter"),
     require("plugins.tmux-navigator"),
     require("plugins.catppuccin"),
+    require("plugins.spectre"),
 }
