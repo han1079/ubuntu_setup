@@ -62,6 +62,9 @@ map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration"})
 map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation"})
 map("n", "gr", vim.lsp.buf.references, { desc = "Go to references"})
 
+-- Diagnostics
+map("n", "<leader>dd", vim.diagnostic.open_float, { desc = "Show diagnostics" })
+
 -- Yazi --
 
 --local yazi = require("util.yazi")

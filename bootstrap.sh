@@ -81,5 +81,21 @@ if ! grep -q '\.bash_aliases' "$HOME/.bashrc" 2>/dev/null; then
 fi
 
 echo ""
+echo "=== typescript-language-server ==="
+if ! command -v typescript-language-server &>/dev/null; then
+  echo "Installing from local tarballs..."
+  if sudo npm install -g \
+      "$SCRIPT_DIR/typescript-language-server-5.1.3.tgz" \
+      "$SCRIPT_DIR/typescript-6.0.3.tgz"; then
+    echo "typescript-language-server: installed"
+  else
+    echo "WARNING: typescript-language-server install failed."
+    echo "  Run manually: sudo npm install -g <path>/typescript-language-server-5.1.3.tgz <path>/typescript-6.0.3.tgz"
+  fi
+else
+  echo "typescript-language-server: ok"
+fi
+
+echo ""
 echo "=== bootstrap.sh done ==="
 echo "Run: source ~/.cargo/env && ./setup.sh"
