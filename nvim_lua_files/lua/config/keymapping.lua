@@ -20,6 +20,7 @@ local opts = { noremap = true, silent = true }
 map("n", "<leader>bl", ":bnext<CR>", opts)
 map("n", "<leader>bh", ":bprev<CR>", opts)
 map("n", "<leader>bd", ":bd<CR>", opts)
+map("n", "<leader>b<C-z>", ":b#<CR>", opts)
 
 -- Windows (splits)
 map("n", "<leader>sv", ":vsplit<CR>", opts)
@@ -65,6 +66,14 @@ map("n", "gr", vim.lsp.buf.references, { desc = "Go to references"})
 -- Diagnostics
 map("n", "<leader>dd", vim.diagnostic.open_float, { desc = "Show diagnostics" })
 
+-- Dynamic Tab Sizing
+vim.api.nvim_create_user_command("Tab", function(args)
+    local n = tonumber(args.args)
+    vim.o.tabstop = n
+    vim.o.shiftwidth= n
+    vim.o.expandtab = true 
+end, { nargs = 1 , desc = "Set Tab Sizing for this session"}
+)
 -- Yazi --
 
 --local yazi = require("util.yazi")
