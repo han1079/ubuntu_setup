@@ -50,12 +50,28 @@ fi
 echo ""
 echo "=== Nvim config ==="
 NVIM_CONF="$HOME/.config/nvim"
-mkdir -p "$NVIM_CONF"
+NVIM_SRC="$SCRIPT_DIR/nvim_lua_files"
+mkdir -p "$(dirname "$NVIM_CONF")"
 
-echo "Copying lua config files..."
-cp "$SCRIPT_DIR/nvim_lua_files/init.lua" "$NVIM_CONF/init.lua"
-cp "$SCRIPT_DIR/nvim_lua_files/lazy-lock.json" "$NVIM_CONF/lazy-lock.json"
-cp -r "$SCRIPT_DIR/nvim_lua_files/lua" "$NVIM_CONF"
+if [ -L "$NVIM_CONF" ]; then
+  CURRENT_TARGET="$(readlink -f "$NVIM_CONF")"
+  EXPECTED_TARGET="$(readlink -f "$NVIM_SRC")"
+  if [ "$CURRENT_TARGET" = "$EXPECTED_TARGET" ]; then
+    echo "nvim config: symlink already correct"
+  else
+    echo "nvim config: symlink points to $CURRENT_TARGET; replacing"
+    rm "$NVIM_CONF"
+    ln -s "$NVIM_SRC" "$NVIM_CONF"
+  fi
+elif [ -e "$NVIM_CONF" ]; then
+  BACKUP="$NVIM_CONF.bak.$(date +%Y%m%d%H%M%S)"
+  echo "nvim config: existing dir found, backing up to $BACKUP"
+  mv "$NVIM_CONF" "$BACKUP"
+  ln -s "$NVIM_SRC" "$NVIM_CONF"
+else
+  echo "nvim config: creating symlink"
+  ln -s "$NVIM_SRC" "$NVIM_CONF"
+fi
 
 echo ""
 echo "=== pylsp ==="

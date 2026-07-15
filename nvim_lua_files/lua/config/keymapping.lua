@@ -16,11 +16,29 @@ local opts = { noremap = true, silent = true }
 --map("n", "<leader>x", ":x<CR>", opts)
 --map("n", "<leader>Q", ":qa!<CR>", opts)
 
+
 -- Buffers
 map("n", "<leader>bl", ":bnext<CR>", opts)
 map("n", "<leader>bh", ":bprev<CR>", opts)
-map("n", "<leader>bd", ":bd<CR>", opts)
 map("n", "<leader>b<C-z>", ":b#<CR>", opts)
+map("n", "<leader>bd", function()
+    local target_buf = vim.api.nvim_get_current_buf()
+    for _, win in ipairs(vim.fn.win_findbuf(target_buf)) do
+        vim.api.nvim_win_call(win, function()
+            local alt = vim.fn.bufnr("#")
+            if alt > 0 and vim.fn.buflisted(alt) == 1 and alt ~= target_buf then
+                vim.cmd("buffer #")
+            else 
+                vim.cmd("bnext")
+            end
+
+            if vim.api.nvim_get_current_buf() == target_buf then
+                vim.cmd("enew")
+            end
+        end)
+    end
+    pcall(vim.api.nvim_buf_delete, target_buf, {})
+end, opts)
 
 -- Windows (splits)
 map("n", "<leader>sv", ":vsplit<CR>", opts)
@@ -74,7 +92,10 @@ vim.api.nvim_create_user_command("Tab", function(args)
     vim.o.expandtab = true 
 end, { nargs = 1 , desc = "Set Tab Sizing for this session"}
 )
--- Yazi --
+vim.api.nvim_create_user_command("Messages", function() 
+    vim.cmd("vnew | put =execute('messages')")
+end, {desc = "Open :messages in a split"})
 
---local yazi = require("util.yazi")
---vim.keymap.set("n", "<leader>fy", yazi.open, { desc = "Open Yazi file manager"})
+map("n", "<leader>err", ":Messages<CR>", opts)
+
+-- Error Messages 
